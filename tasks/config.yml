@@ -1,0 +1,17 @@
+---
+# config.yml — render Loki configuration file to the host.
+
+- name: Ensure per-instance config directory exists
+  ansible.builtin.file:
+    path: "{{ loki_config_dir_base }}/{{ loki_instance_name }}"
+    state: directory
+    # The Loki container runs as a non-root UID, so the bind-mounted config
+    # path must be traversable/readable regardless of host UID/GID mapping.
+    mode: "0755"
+
+- name: Render loki.yaml from template
+  ansible.builtin.template:
+    src: loki.yaml.j2
+    dest: "{{ loki_config_dir_base }}/{{ loki_instance_name }}/loki.yaml"
+    mode: "0644"
+  notify: Restart loki instance
